@@ -39,7 +39,7 @@ module HashToModelMapper
 
     instance = model_name.to_s.classify.constantize.new
     instance.readonly!
-    mapper = registry[model_name][type]
+    mapper = registry[model_name][type] || fail("Mapper not defined for #{model_name} -> #{type}")
     attributes = mapper.attributes
     hash = hash.with_indifferent_access 
 
