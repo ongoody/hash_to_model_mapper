@@ -17,17 +17,31 @@ module HashToModelMapper
     @registry
   end
 
+  def self.defined_mappings_for(model_name)
+    @registry[model_name]
+  end
+
+  def self.defined_fields_for(model_name)
+    defined_mappings_for(model_name).values
+      .map(&:attributes)
+      .map(&:keys)
+      .flatten
+      .uniq
+  end
+
   def self.define(&block)
     definition_proxy = DefinitionProxy.new
     definition_proxy.instance_eval(&block)
   end
 
   def self.call(model_name, type = nil, hash)
+    fail("hash needs to be present") unless hash.present?
+
     instance = model_name.to_s.classify.constantize.new
     instance.readonly!
     mapper = registry[model_name][type]
     attributes = mapper.attributes
-    hash = hash.with_indifferent_access
+    hash = hash.with_indifferent_access 
 
     attributes.each do |attribute_name, path|
       value = hash.dig(*path)

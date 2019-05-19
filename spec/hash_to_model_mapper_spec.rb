@@ -12,7 +12,7 @@ end
 RSpec.describe HashToModelMapper do
   before do
     described_class.define do
-      mapper :ad, type: :a do
+      mapper :ad, type: :data_source_1 do
         title 'Title'
         description 'Details', 'Desc'
         cover_url 'Photos', 0
@@ -28,7 +28,7 @@ RSpec.describe HashToModelMapper do
     }
   end
 
-  subject { described_class.call(:ad, :a, hash) }
+  subject { described_class.call(:ad, :data_source_1, hash) }
 
   it 'maps one level attributes' do
     expect(subject.title).to eq('the title')
