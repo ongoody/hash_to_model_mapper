@@ -41,10 +41,14 @@ module HashToModelMapper
     instance.readonly!
     mapper = registry[model_name][type] || fail("Mapper not defined for #{model_name} -> #{type}")
     attributes = mapper.attributes
-    hash = hash.with_indifferent_access 
+    hash = hash.with_indifferent_access
 
     attributes.each do |attribute_name, path|
       value = hash.dig(*path)
+
+      if (transformer = mapper.transformers[attribute_name])
+        value = transformer.call(value)
+      end
       instance.__send__("#{attribute_name}=", value)
     end
 
@@ -62,12 +66,14 @@ end
 
 class Mapper
   def initialize
+    @transformers = {}
     @attributes = {}
   end
 
-  attr_reader :attributes
+  attr_reader :attributes, :transformers
 
-  def method_missing(name, *path)
+  def method_missing(name, *path, **args)
+    @transformers[name] = args[:transform]
     @attributes[name] = path
   end
 end

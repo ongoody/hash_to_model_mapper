@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class Ad
-  attr_accessor :title, :description, :cover_url
+  attr_accessor :title, :description, :cover_url, :price
 
   # Simulating ActiveRecord #readonly!
   def readonly!
@@ -16,6 +16,7 @@ RSpec.describe HashToModelMapper do
         title 'Title'
         description 'Details', 'Desc'
         cover_url 'Photos', 0
+        price 'Price', transform: -> (value) { value.to_i*100 }
       end
     end
   end
@@ -24,7 +25,8 @@ RSpec.describe HashToModelMapper do
     {
       'Title': 'the title',
       'Details': { 'Desc': 'the description' },
-      'Photos': %w[photo_1 photo_2]
+      'Photos': %w[photo_1 photo_2],
+      'Price': '200_000'
     }
   end
 
@@ -40,5 +42,9 @@ RSpec.describe HashToModelMapper do
 
   it 'maps array elements' do
     expect(subject.cover_url).to eq('photo_1')
+  end
+
+  it 'maps array elements' do
+    expect(subject.price).to eq(200_000_00)
   end
 end
