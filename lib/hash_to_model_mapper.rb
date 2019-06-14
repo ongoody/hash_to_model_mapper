@@ -53,7 +53,13 @@ module HashToModelMapper
     end
 
     attributes.each do |attribute_name, path|
-      value = get_value.(path)
+      value = if path.respond_to? :call
+                path.call(source)
+              elsif path.first.respond_to? :call
+                path.first.call(source)
+              else
+                get_value.(path)
+              end
 
       if (transformer = mapper.transformers[attribute_name])
         if transformer.is_a? Hash
@@ -91,8 +97,8 @@ class Mapper
 
   attr_reader :attributes, :transformers
 
-  def method_missing(name, *path, **args)
+  def method_missing(name, *path, **args, &block)
     @transformers[name] = args[:transform]
-    @attributes[name] = path
+    @attributes[name] = path.presence || block
   end
 end

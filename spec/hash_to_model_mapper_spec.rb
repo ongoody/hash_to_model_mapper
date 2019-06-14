@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class Ad
-  attr_accessor :title, :description, :cover_url, :price
+  attr_accessor :title, :description, :cover_url, :price, :type, :next_check_at 
 
   # Simulating ActiveRecord #readonly!
   def readonly!
@@ -17,6 +17,8 @@ RSpec.describe HashToModelMapper do
         description 'Details', 'Desc'
         cover_url 'Photos', 0
         price 'Price', transform: -> (value) { value.to_i*100 }
+        type { 'type_1' }
+        next_check_at ->(hash) { 20.days.from_now.to_date if hash['Price'].present? }
       end
     end
   end
@@ -46,5 +48,13 @@ RSpec.describe HashToModelMapper do
 
   it 'maps array elements' do
     expect(subject.price).to eq(200_000_00)
+  end
+
+  it 'maps fixes values' do
+    expect(subject.type).to eq('type_1')
+  end
+
+  it 'maps lambda values' do
+    expect(subject.next_check_at).to eq(20.days.from_now.to_date)
   end
 end
