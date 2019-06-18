@@ -23,10 +23,10 @@ module HashToModelMapper
 
   def self.defined_fields_for(model_name)
     defined_mappings_for(model_name).values
-      .map(&:attributes)
-      .map(&:keys)
-      .flatten
-      .uniq
+                                    .map(&:attributes)
+                                    .map(&:keys)
+                                    .flatten
+                                    .uniq
   end
 
   def self.define(&block)
@@ -35,21 +35,19 @@ module HashToModelMapper
   end
 
   def self.call(model_name, type = nil, source)
-    fail("source needs to be present") unless source.present?
+    raise('source needs to be present') unless source.present?
 
     instance = model_name.to_s.classify.constantize.new
     instance.readonly!
-    mapper = registry[model_name][type] || fail("Mapper not defined for #{model_name} -> #{type}")
+    mapper = registry[model_name][type] || raise("Mapper not defined for #{model_name} -> #{type}")
     attributes = mapper.attributes
 
     case source
     when Hash
       source = source.with_indifferent_access
       get_value = ->(path) { source.dig(*path) }
-    when ApplicationRecord 
-      get_value = ->(path) { path.reduce(source) { |source, method| source.__send__(method) } }
     else
-      fail("Type not supported Hash/ApplicationRecord, however it was #{source.class}: #{source}")
+      get_value = ->(path) { path.reduce(source) { |source, method| source.__send__(method) } }
     end
 
     attributes.each do |attribute_name, path|
@@ -58,16 +56,16 @@ module HashToModelMapper
               elsif path.first.respond_to? :call
                 path.first.call(source)
               else
-                get_value.(path)
+                get_value.call(path)
               end
 
       if (transformer = mapper.transformers[attribute_name])
         if transformer.is_a? Hash
-          value = transformer.with_indifferent_access[value] || fail("Key not present in tansformer: #{value}")
+          value = transformer.with_indifferent_access[value] || raise("Key not present in tansformer: #{value}")
         elsif transformer.respond_to? :call
           value = transformer.call(value)
         else
-          fail('transformer is neither a hash or a callable object')
+          raise('transformer is neither a hash or a callable object')
         end
       end
       instance.__send__("#{attribute_name}=", value)
