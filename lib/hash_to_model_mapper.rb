@@ -61,7 +61,7 @@ module HashToModelMapper
 
       if (transformer = mapper.transformers[attribute_name])
         if transformer.is_a? Hash
-          value = transformer.with_indifferent_access[value] || raise("Key not present in tansformer: #{value}")
+          value = transformer.with_indifferent_access[value] || raise("Key not present in tansformer: #{attribute_name} - #{value}")
         elsif transformer.respond_to? :call
           value = transformer.call(value)
         else
