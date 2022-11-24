@@ -4,6 +4,8 @@ require 'hash_to_model_mapper/version'
 
 require 'active_support/core_ext/hash'
 require 'active_support/core_ext/string'
+require 'active_support/core_ext/date'
+require 'active_support/core_ext/integer'
 
 module HashToModelMapper
   @registry = {}
