@@ -40,7 +40,7 @@ module HashToModelMapper
     raise('source needs to be present') unless source.present?
 
     instance = model_name.to_s.classify.constantize.new
-    instance.readonly!
+    instance.readonly! if instance.respond_to? :readonly!
     mapper = registry[model_name][type] || raise("Mapper not defined for #{model_name} -> #{type}")
     attributes = mapper.attributes
 
