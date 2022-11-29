@@ -11,6 +11,7 @@ module HashToModelMapper
   @registry = {}
 
   def self.register(model_name, type, mapper)
+    log("Registering: #{model_name} -> #{type}")
     @registry[model_name] ||= {}
     @registry[model_name][type] = mapper
   end
@@ -41,7 +42,7 @@ module HashToModelMapper
 
     instance = model_name.to_s.classify.constantize.new
     instance.readonly! if instance.respond_to? :readonly!
-    mapper = registry[model_name][type] || raise("Mapper not defined for #{model_name} -> #{type}")
+    mapper = registry.dig(model_name, type) || raise("Mapper not defined for #{model_name} -> #{type} \n #{puts_current_mappers}")
     attributes = mapper.attributes
 
     case source
@@ -88,6 +89,22 @@ module HashToModelMapper
   end
 
   private
+
+  def self.log(msg)
+    Rails.logger.info("[HashToModelMapper] #{msg}") if ENV['DEBUG']
+  end
+
+  def self.puts_current_mappers
+    msg = "Registered mappers: \n"
+    registry.keys.each do |model_name|
+      msg += model_name.to_s
+      registry[model_name].keys.each do |type|
+        msg += "\n  - #{type.to_s}"
+      end
+    end
+
+    msg
+  end
 end
 
 class DefinitionProxy
