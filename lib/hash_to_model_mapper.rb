@@ -38,7 +38,7 @@ module HashToModelMapper
   end
 
   def self.call(model_name, type = nil, source)
-    raise('source needs to be present') unless source.present?
+    raise("[#{model_name.inspect} -> #{type.inspect}] source data needs to be present") unless source.present?
 
     instance = model_name.to_s.classify.constantize.new
     instance.readonly! if instance.respond_to? :readonly!
@@ -75,7 +75,7 @@ module HashToModelMapper
           end
 
         elsif transformer.respond_to? :call
-          value = transformer.call(value)
+          value = instance.instance_exec(value, &transformer)
         else
           raise('transformer is neither a hash or a callable object')
         end
