@@ -37,27 +37,29 @@ module HashToModelMapper
     definition_proxy.instance_eval(&block)
   end
 
-  def self.call(model_name, type = nil, source)
-    raise("[#{model_name.inspect} -> #{type.inspect}] source data needs to be present") unless source.present?
+  def self.call(model_name, type = nil, raw_data)
+    raise("[#{model_name.inspect} -> #{type.inspect}] raw_data data needs to be present") unless raw_data.present?
 
     instance = model_name.to_s.classify.constantize.new
     instance.readonly! if instance.respond_to? :readonly!
+    instance.raw_data = raw_data if instance.respond_to? :raw_data=
+
     mapper = registry.dig(model_name, type) || raise("Mapper not defined for #{model_name} -> #{type} \n #{puts_current_mappers}")
     attributes = mapper.attributes
 
-    case source
+    case raw_data
     when Hash
-      source = source.with_indifferent_access
-      get_value = ->(path) { source.dig(*path) }
+      raw_data = raw_data.with_indifferent_access
+      get_value = ->(path) { raw_data.dig(*path) }
     else
-      get_value = ->(path) { path.reduce(source) { |source, method| source.__send__(method) } }
+      get_value = ->(path) { path.reduce(raw_data) { |raw_data, method| raw_data.__send__(method) } }
     end
 
     attributes.each do |attribute_name, path|
       value = if path.respond_to? :call
-                path.call(source)
+                path.call(raw_data)
               elsif path.first.respond_to? :call
-                path.first.call(source)
+                path.first.call(raw_data)
               else
                 get_value.call(path)
               end
